@@ -1,8 +1,17 @@
 // app/admin/logout/route.ts
 import { NextResponse } from "next/server";
-import { destroySession } from "@/lib/adminAuth";
+import { cookies } from "next/headers";
 
-export async function POST(request: Request) {
-  await destroySession();
-  return NextResponse.redirect(new URL("/", request.url));
+export const runtime = "nodejs";
+
+export async function POST(req: Request) {
+  const res = NextResponse.redirect(new URL("/admin", req.url));
+  const cookieStore = await cookies();
+
+  cookieStore.set("pit_admin", "", {
+    path: "/",
+    maxAge: 0,
+  });
+
+  return res;
 }
