@@ -1,35 +1,23 @@
 // lib/adminAuth.ts
-import "server-only";
 import { cookies } from "next/headers";
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL!;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD!;
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
-const COOKIE_NAME = "pit_admin_logged_in";
+// called by /admin/login when user submits form
+export function checkAdminCredentials(email: string, password: string): boolean {
+  if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
+    console.error("ADMIN_EMAIL or ADMIN_PASSWORD not set in env");
+    return false;
+  }
 
-export function validateCredentials(email: string, password: string): boolean {
   return email === ADMIN_EMAIL && password === ADMIN_PASSWORD;
 }
 
-export async function createSession() {
-  const cookieStore = await cookies();
-
-  cookieStore.set(COOKIE_NAME, "1", {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 6, // 6 hours
-  });
-}
-
-export async function destroySession() {
-  const cookieStore = await cookies();
-  cookieStore.delete(COOKIE_NAME);
-}
-
+// used by page.tsx and API routes to check cookie
 export async function isAuthenticated(): Promise<boolean> {
-  const cookieStore = await cookies();
-  const cookie = cookieStore.get(COOKIE_NAME);
-  return cookie?.value === "1";
+  const cookieStore = await cookies(); // Next 16: cookies() is async
+  const token = cookieStore.get("pit_admin");
+  return token?.value === "ok";
 }
+
